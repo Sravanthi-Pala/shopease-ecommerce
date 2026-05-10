@@ -1,24 +1,12 @@
-﻿# Use Eclipse Temurin Java 17 (works on Render)
-FROM eclipse-temurin:17-jdk-alpine
-
-# Set working directory
+﻿# Use maven image to build
+FROM maven:3.8.4-openjdk-17-slim AS build
 WORKDIR /app
+COPY . .
+RUN mvn clean package -DskipTests
 
-# Copy maven wrapper and source code
-COPY mvnw .
-COPY mvnw.cmd .
-COPY .mvn .mvn
-COPY pom.xml .
-COPY src src
-
-# Make mvnw executable
-RUN chmod +x mvnw
-
-# Build the application
-RUN ./mvnw clean package -DskipTests
-
-# Expose port
+# Use JRE to run
+FROM eclipse-temurin:17-jre-alpine
+WORKDIR /app
+COPY --from=build /app/target/demo-0.0.1-SNAPSHOT.jar app.jar
 EXPOSE 8080
-
-# Run the application
-CMD ["java", "-jar", "target/demo-0.0.1-SNAPSHOT.jar"]
+CMD ["java", "-jar", "app.jar"]
