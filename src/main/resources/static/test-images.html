@@ -1,0 +1,25 @@
+﻿<!DOCTYPE html>
+<html>
+<head><title>Image Test</title></head>
+<body>
+    <h1>Image Test Page</h1>
+    <h2>Parker Pen Image:</h2>
+    <img src="/images/paker.jpg" alt="Parker Pen" style="max-width: 300px;">
+    <p>If you see the image above, static files are working!</p>
+    <h2>All Images in Folder:</h2>
+    <ul id="fileList"></ul>
+    <script>
+        // List available images
+        const images = ['paker.jpg', 'maybeline.jpg', 'nyx-professional.jpg', 'laptop.jpg'];
+        const list = document.getElementById('fileList');
+        images.forEach(img => {
+            const li = document.createElement('li');
+            const link = document.createElement('a');
+            link.href = '/images/' + img;
+            link.textContent = img;
+            li.appendChild(link);
+            list.appendChild(li);
+        });
+    </script>
+</body>
+</html>

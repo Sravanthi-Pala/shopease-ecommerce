@@ -1,0 +1,249 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile - ShopEase</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Poppins', sans-serif; background: #f0f2f5; }
+        .header { background: linear-gradient(135deg, #2874f0, #1a5be0); padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; }
+        .logo { color: white; font-size: 24px; font-weight: bold; cursor: pointer; }
+        .container { max-width: 1000px; margin: 40px auto; padding: 0 20px; }
+        .profile-card { background: white; border-radius: 20px; padding: 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); margin-bottom: 30px; }
+        .profile-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; padding-bottom: 15px; border-bottom: 2px solid #2874f0; }
+        .profile-header h2 { font-size: 24px; }
+        .edit-btn { background: #2874f0; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 500; transition: 0.3s; }
+        .edit-btn:hover { background: #1a5bc7; transform: translateY(-2px); }
+        .info-row { display: flex; padding: 15px 0; border-bottom: 1px solid #eee; }
+        .info-label { font-weight: 600; width: 150px; color: #666; }
+        .info-value { flex: 1; color: #333; }
+        .edit-form { display: none; margin-top: 20px; padding: 20px; background: #f8f9fa; border-radius: 12px; }
+        .edit-form.active { display: block; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: 500; color: #333; }
+        .form-group input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; }
+        .save-btn { background: #4caf50; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; margin-right: 10px; }
+        .cancel-btn { background: #999; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; }
+        
+        .address-section { margin-top: 30px; }
+        .address-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .address-header h3 { font-size: 18px; }
+        .add-address-btn { background: #ff6b6b; color: white; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 14px; transition: 0.3s; }
+        .add-address-btn:hover { background: #ff5252; }
+        .address-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+        .address-card { background: #f8f9fa; border-radius: 12px; padding: 15px; position: relative; border: 1px solid #e0e0e0; transition: 0.3s; }
+        .address-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .address-type { font-weight: bold; color: #2874f0; margin-bottom: 8px; }
+        .address-text { font-size: 13px; color: #666; line-height: 1.5; margin-bottom: 10px; }
+        .address-actions { display: flex; gap: 10px; margin-top: 10px; }
+        .address-actions button { background: none; border: none; cursor: pointer; font-size: 12px; padding: 4px 8px; border-radius: 5px; }
+        .edit-address-btn { color: #2874f0; }
+        .delete-address-btn { color: #ff6b6b; }
+        
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; }
+        .modal-content { background: white; border-radius: 16px; padding: 25px; max-width: 500px; width: 90%; }
+        .modal-header { display: flex; justify-content: space-between; margin-bottom: 20px; }
+        .close-modal { cursor: pointer; font-size: 24px; color: #999; }
+        
+        .footer { background: #172337; color: white; text-align: center; padding: 20px; margin-top: 40px; }
+        .toast { position: fixed; bottom: 20px; right: 20px; background: #4caf50; color: white; padding: 12px 24px; border-radius: 8px; z-index: 9999; animation: slideIn 0.3s ease; }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        @media (max-width: 768px) { .info-row { flex-direction: column; gap: 5px; } .info-label { width: auto; } }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo" onclick="window.location.href='/'">🛍️ ShopEase</div>
+        <a href="/" style="color: white;">← Back to Shop</a>
+    </div>
+    
+    <div class="container">
+        <div class="profile-card">
+            <div class="profile-header">
+                <h2><i class="fas fa-user-circle"></i> My Profile</h2>
+                <button class="edit-btn" onclick="toggleEditForm()"><i class="fas fa-edit"></i> Edit Profile</button>
+            </div>
+            
+            <div id="profileView">
+                <div class="info-row"><div class="info-label">Full Name</div><div class="info-value" id="displayName">Loading...</div></div>
+                <div class="info-row"><div class="info-label">Email</div><div class="info-value" id="displayEmail">Loading...</div></div>
+                <div class="info-row"><div class="info-label">Phone</div><div class="info-value" id="displayPhone">Loading...</div></div>
+            </div>
+            
+            <div id="editForm" class="edit-form">
+                <h3 style="margin-bottom: 15px;">Edit Profile</h3>
+                <div class="form-group"><label>Full Name</label><input type="text" id="editName" placeholder="Enter your name"></div>
+                <div class="form-group"><label>Phone Number</label><input type="tel" id="editPhone" placeholder="Enter phone number"></div>
+                <button class="save-btn" onclick="saveProfile()">Save Changes</button>
+                <button class="cancel-btn" onclick="toggleEditForm()">Cancel</button>
+            </div>
+        </div>
+        
+        <div class="profile-card address-section">
+            <div class="address-header">
+                <h3><i class="fas fa-map-marker-alt"></i> Saved Addresses</h3>
+                <button class="add-address-btn" onclick="showAddAddressModal()"><i class="fas fa-plus"></i> Add New Address</button>
+            </div>
+            <div id="addressList" class="address-grid">Loading addresses...</div>
+        </div>
+    </div>
+    
+    <div id="addressModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Add New Address</h3>
+                <span class="close-modal" onclick="closeAddressModal()">&times;</span>
+            </div>
+            <div class="form-group"><label>Address Type</label><select id="addressType"><option value="Home">Home</option><option value="Office">Office</option><option value="Other">Other</option></select></div>
+            <div class="form-group"><label>Full Address</label><textarea id="fullAddress" rows="3" placeholder="Enter your complete address"></textarea></div>
+            <div class="form-group"><label>City</label><input type="text" id="city" placeholder="City"></div>
+            <div class="form-group"><label>State</label><input type="text" id="state" placeholder="State"></div>
+            <div class="form-group"><label>Pincode</label><input type="text" id="pincode" placeholder="Pincode"></div>
+            <button class="save-btn" onclick="saveAddress()">Save Address</button>
+            <button class="cancel-btn" onclick="closeAddressModal()">Cancel</button>
+        </div>
+    </div>
+    
+    <div class="footer"><p>&copy; 2024 ShopEase. All rights reserved.</p></div>
+
+    <script>
+        const userEmail = localStorage.getItem('userEmail');
+        let userProfile = JSON.parse(localStorage.getItem('userProfile_' + userEmail) || '{}');
+        let addresses = JSON.parse(localStorage.getItem('userAddresses_' + userEmail) || '[]');
+        
+        function showToast(msg) {
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.innerHTML = msg;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 2000);
+        }
+        
+        function loadProfile() {
+            if (!userEmail) { window.location.href = '/login.html'; return; }
+            
+            // Load from localStorage first
+            if (userProfile.name) {
+                document.getElementById('displayName').innerHTML = userProfile.name;
+                document.getElementById('displayEmail').innerHTML = userEmail;
+                document.getElementById('displayPhone').innerHTML = userProfile.phone || 'Not set';
+                document.getElementById('editName').value = userProfile.name || '';
+                document.getElementById('editPhone').value = userProfile.phone || '';
+            } else {
+                // Try to load from API
+                fetch(`/api/profile/${userEmail}`).then(res => res.json()).then(profile => {
+                    document.getElementById('displayName').innerHTML = profile.fullName || 'Not set';
+                    document.getElementById('displayEmail').innerHTML = userEmail;
+                    document.getElementById('displayPhone').innerHTML = profile.phone || 'Not set';
+                    document.getElementById('editName').value = profile.fullName || '';
+                    document.getElementById('editPhone').value = profile.phone || '';
+                    
+                    // Save to localStorage
+                    userProfile = { name: profile.fullName || 'Not set', phone: profile.phone || '' };
+                    localStorage.setItem('userProfile_' + userEmail, JSON.stringify(userProfile));
+                }).catch(e => console.error(e));
+            }
+            loadAddresses();
+        }
+        
+        function toggleEditForm() {
+            const form = document.getElementById('editForm');
+            form.classList.toggle('active');
+        }
+        
+        function saveProfile() {
+            const name = document.getElementById('editName').value;
+            const phone = document.getElementById('editPhone').value;
+            
+            if (!name) {
+                showToast('Please enter your name');
+                return;
+            }
+            
+            // Update localStorage
+            userProfile = { name: name, phone: phone };
+            localStorage.setItem('userProfile_' + userEmail, JSON.stringify(userProfile));
+            
+            // Update display
+            document.getElementById('displayName').innerHTML = name;
+            document.getElementById('displayPhone').innerHTML = phone || 'Not set';
+            
+            // Try to save to API if available
+            fetch('/api/profile/save', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: userEmail, fullName: name, phone: phone })
+            }).catch(e => console.log('API save failed, saved locally'));
+            
+            toggleEditForm();
+            showToast('Profile updated successfully! ✅');
+        }
+        
+        function loadAddresses() {
+            const container = document.getElementById('addressList');
+            if (addresses.length === 0) {
+                container.innerHTML = '<div style="text-align: center; padding: 40px; color: #999;">No saved addresses. Click "Add New Address" to add one.</div>';
+                return;
+            }
+            container.innerHTML = addresses.map((addr, index) => `
+                <div class="address-card">
+                    <div class="address-type"><i class="fas fa-tag"></i> ${addr.type}</div>
+                    <div class="address-text">${addr.address}, ${addr.city}, ${addr.state} - ${addr.pincode}</div>
+                    <div class="address-actions">
+                        <button class="edit-address-btn" onclick="editAddress(${index})"><i class="fas fa-edit"></i> Edit</button>
+                        <button class="delete-address-btn" onclick="deleteAddress(${index})"><i class="fas fa-trash"></i> Delete</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        function showAddAddressModal() { document.getElementById('addressModal').style.display = 'flex'; }
+        function closeAddressModal() { document.getElementById('addressModal').style.display = 'none'; }
+        
+        function saveAddress() {
+            const newAddress = {
+                type: document.getElementById('addressType').value,
+                address: document.getElementById('fullAddress').value,
+                city: document.getElementById('city').value,
+                state: document.getElementById('state').value,
+                pincode: document.getElementById('pincode').value
+            };
+            addresses.push(newAddress);
+            localStorage.setItem('userAddresses_' + userEmail, JSON.stringify(addresses));
+            closeAddressModal();
+            loadAddresses();
+            showToast('Address added successfully! ✅');
+            // Clear form
+            document.getElementById('fullAddress').value = '';
+            document.getElementById('city').value = '';
+            document.getElementById('state').value = '';
+            document.getElementById('pincode').value = '';
+        }
+        
+        function editAddress(index) {
+            const addr = addresses[index];
+            document.getElementById('addressType').value = addr.type;
+            document.getElementById('fullAddress').value = addr.address;
+            document.getElementById('city').value = addr.city;
+            document.getElementById('state').value = addr.state;
+            document.getElementById('pincode').value = addr.pincode;
+            addresses.splice(index, 1);
+            showAddAddressModal();
+        }
+        
+        function deleteAddress(index) {
+            if (confirm('Delete this address?')) {
+                addresses.splice(index, 1);
+                localStorage.setItem('userAddresses_' + userEmail, JSON.stringify(addresses));
+                loadAddresses();
+                showToast('Address deleted!');
+            }
+        }
+        
+        loadProfile();
+    </script>
+</body>
+</html>

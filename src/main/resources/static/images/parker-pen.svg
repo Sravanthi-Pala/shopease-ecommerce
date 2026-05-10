@@ -1,0 +1,8 @@
+﻿<svg width="300" height="300" xmlns="http://www.w3.org/2000/svg">
+  <rect width="300" height="300" fill="#1a1a2e"/>
+  <text x="150" y="120" font-family="Georgia" font-size="36" fill="#d4af37" text-anchor="middle">PARKER</text>
+  <text x="150" y="160" font-family="Georgia" font-size="14" fill="#d4af37" text-anchor="middle">EST.1698</text>
+  <line x1="80" y1="180" x2="220" y2="180" stroke="#d4af37" stroke-width="1"/>
+  <text x="150" y="220" font-family="Georgia" font-size="16" fill="#ffffff" text-anchor="middle">Premium Pen Set</text>
+  <text x="150" y="250" font-family="Arial" font-size="12" fill="#888888" text-anchor="middle">Luxury Writing Instrument</text>
+</svg>

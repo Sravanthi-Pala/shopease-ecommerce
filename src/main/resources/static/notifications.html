@@ -1,0 +1,64 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>Notifications - ShopEase</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Poppins', sans-serif; background: #f0f2f5; }
+        .header { background: linear-gradient(135deg, #2874f0, #1a5be0); padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; }
+        .logo { color: white; font-size: 24px; font-weight: bold; cursor: pointer; }
+        .container { max-width: 800px; margin: 40px auto; padding: 0 20px; }
+        .notification-card { background: white; border-radius: 12px; padding: 20px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); display: flex; gap: 15px; align-items: center; }
+        .notification-icon { width: 50px; height: 50px; background: #2874f0; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; }
+        .notification-content { flex: 1; }
+        .notification-title { font-weight: bold; margin-bottom: 5px; }
+        .notification-time { font-size: 12px; color: #999; }
+        .mark-read { color: #2874f0; cursor: pointer; font-size: 12px; }
+        .footer { background: #172337; color: white; text-align: center; padding: 20px; margin-top: 40px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo" onclick="window.location.href='/'">🛍️ ShopEase</div>
+        <a href="/" style="color: white;">← Back to Shop</a>
+    </div>
+    <div class="container">
+        <h1 style="margin-bottom: 20px;"><i class="fas fa-bell"></i> Notifications</h1>
+        <div id="notifications"></div>
+    </div>
+    <div class="footer"><p>&copy; 2024 ShopEase. All rights reserved.</p></div>
+    <script>
+        let notifications = JSON.parse(localStorage.getItem('notifications') || '[]');
+        if (notifications.length === 0) {
+            notifications = [
+                { id: 1, title: "Welcome to ShopEase!", message: "Get 20% off on your first order", time: "Just now", read: false },
+                { id: 2, title: "Flash Sale!", message: "Up to 60% off on electronics", time: "2 hours ago", read: false },
+                { id: 3, title: "Free Shipping", message: "Free shipping on orders above ₹500", time: "1 day ago", read: true }
+            ];
+            localStorage.setItem('notifications', JSON.stringify(notifications));
+        }
+        function loadNotifications() {
+            const container = document.getElementById('notifications');
+            container.innerHTML = notifications.map(n => `
+                <div class="notification-card" style="background: ${n.read ? 'white' : '#e3f2fd'}">
+                    <div class="notification-icon"><i class="fas fa-bell"></i></div>
+                    <div class="notification-content">
+                        <div class="notification-title">${n.title}</div>
+                        <div class="notification-message">${n.message}</div>
+                        <div class="notification-time">${n.time}</div>
+                    </div>
+                    ${!n.read ? `<div class="mark-read" onclick="markAsRead(${n.id})">Mark as read</div>` : ''}
+                </div>
+            `).join('');
+        }
+        function markAsRead(id) {
+            notifications = notifications.map(n => n.id === id ? {...n, read: true} : n);
+            localStorage.setItem('notifications', JSON.stringify(notifications));
+            loadNotifications();
+        }
+        loadNotifications();
+    </script>
+</body>
+</html>

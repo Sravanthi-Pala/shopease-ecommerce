@@ -1,0 +1,165 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shopping Cart - ShopEase</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Poppins', sans-serif; background: #f0f2f5; }
+        .header { background: linear-gradient(135deg, #2874f0, #1a5be0); padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; }
+        .logo { color: white; font-size: 24px; font-weight: bold; cursor: pointer; }
+        .container { max-width: 1200px; margin: 40px auto; padding: 0 20px; }
+        .cart-container { display: grid; grid-template-columns: 1fr 380px; gap: 30px; }
+        .cart-items { background: white; border-radius: 16px; padding: 25px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); }
+        .cart-items h2 { margin-bottom: 20px; font-size: 20px; }
+        .cart-item { display: flex; gap: 20px; padding: 20px; border-bottom: 1px solid #eee; background: white; border-radius: 12px; margin-bottom: 10px; transition: 0.3s; }
+        .cart-item:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.1); background: #fafafa; }
+        .cart-item-image { width: 100px; height: 100px; object-fit: cover; border-radius: 12px; }
+        .cart-item-details { flex: 1; }
+        .cart-item-title { font-size: 16px; font-weight: 600; margin-bottom: 5px; }
+        .cart-item-brand { font-size: 12px; color: #666; margin-bottom: 5px; }
+        .cart-item-price { color: #2874f0; font-weight: bold; font-size: 18px; }
+        .original-price { text-decoration: line-through; color: #999; font-size: 12px; margin-left: 8px; font-weight: normal; }
+        .quantity-control { display: flex; align-items: center; gap: 15px; margin-top: 10px; }
+        .quantity-btn { width: 32px; height: 32px; border: 1px solid #ddd; background: white; cursor: pointer; border-radius: 8px; font-size: 16px; transition: 0.3s; }
+        .quantity-btn:hover { background: #2874f0; color: white; border-color: #2874f0; }
+        .item-total { font-weight: bold; font-size: 16px; color: #2874f0; }
+        .remove-btn { background: none; border: none; color: #ff6b6b; cursor: pointer; margin-top: 10px; font-size: 13px; transition: 0.3s; display: inline-flex; align-items: center; gap: 5px; }
+        .remove-btn:hover { color: #ff5252; text-decoration: underline; }
+        
+        .cart-summary { background: white; border-radius: 16px; padding: 25px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); position: sticky; top: 100px; }
+        .cart-summary h3 { margin-bottom: 20px; font-size: 18px; }
+        .summary-row { display: flex; justify-content: space-between; padding: 12px 0; }
+        .summary-total { border-top: 2px solid #2874f0; margin-top: 10px; padding-top: 15px; font-weight: bold; font-size: 20px; color: #2874f0; }
+        .checkout-btn { width: 100%; padding: 14px; background: #ff6b6b; color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 20px; transition: 0.3s; }
+        .checkout-btn:hover { background: #ff5252; transform: translateY(-2px); }
+        .empty-cart { text-align: center; padding: 60px; background: white; border-radius: 16px; }
+        .back-link { color: white; text-decoration: none; }
+        .toast { position: fixed; bottom: 20px; right: 20px; background: #4caf50; color: white; padding: 12px 24px; border-radius: 8px; z-index: 9999; animation: slideIn 0.3s ease; }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        @media (max-width: 768px) { .cart-container { grid-template-columns: 1fr; } .cart-item { flex-wrap: wrap; } }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo" onclick="window.location.href='/'">🛍️ ShopEase</div>
+        <a href="/" class="back-link">← Continue Shopping</a>
+    </div>
+    
+    <div class="container">
+        <h1 style="margin-bottom: 20px;">Shopping Cart 🛒</h1>
+        <div class="cart-container" id="cartContainer"></div>
+    </div>
+    
+    <div class="footer"><p>&copy; 2024 ShopEase. All rights reserved.</p></div>
+
+    <script>
+        let cart = JSON.parse(localStorage.getItem('cart') || '[]');
+        
+        function showToast(msg) {
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.innerHTML = msg;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 2000);
+        }
+        
+        function displayCart() {
+            const container = document.getElementById('cartContainer');
+            if (cart.length === 0) {
+                container.innerHTML = '<div class="empty-cart"><i class="fas fa-shopping-cart" style="font-size: 64px; color: #ccc; margin-bottom: 20px;"></i><h3>Your cart is empty</h3><p>Add items to your cart to see them here</p><button onclick="window.location.href=\'/\'" style="margin-top: 20px; padding: 10px 20px; background: #2874f0; color: white; border: none; border-radius: 8px; cursor: pointer;">Continue Shopping</button></div>';
+                return;
+            }
+            
+            let subtotal = 0;
+            let itemsHtml = '<div class="cart-items"><h2>Cart Items (' + cart.length + ')</h2>';
+            
+            cart.forEach((item, index) => {
+                const itemTotal = item.price * (item.quantity || 1);
+                subtotal += itemTotal;
+                const discountPercent = item.originalPrice ? Math.round(((item.originalPrice - item.price) / item.originalPrice) * 100) : 0;
+                const productImage = item.imageUrl || 'https://placehold.co/300x300/2874f0/white?text=Product';
+                
+                itemsHtml += `
+                    <div class="cart-item">
+                        <img class="cart-item-image" src="${productImage}" onerror="this.src='https://placehold.co/100x100/2874f0/white?text=Product'">
+                        <div class="cart-item-details">
+                            <div class="cart-item-title">${item.name}</div>
+                            <div class="cart-item-brand">${item.brand || 'ShopEase'}</div>
+                            <div class="cart-item-price">
+                                ₹${item.price.toLocaleString()}
+                                ${item.originalPrice ? `<span class="original-price">₹${item.originalPrice.toLocaleString()}</span>` : ''}
+                                ${discountPercent > 0 ? `<span style="color:#4caf50; font-size:12px;"> (${discountPercent}% off)</span>` : ''}
+                            </div>
+                            <div class="quantity-control">
+                                <button class="quantity-btn" onclick="updateQuantity(${index}, -1)">-</button>
+                                <span style="min-width: 30px; text-align: center;">${item.quantity || 1}</span>
+                                <button class="quantity-btn" onclick="updateQuantity(${index}, 1)">+</button>
+                                <span style="margin-left: 15px;" class="item-total">Total: ₹${itemTotal.toLocaleString()}</span>
+                            </div>
+                            <button class="remove-btn" onclick="removeItem(${index})"><i class="fas fa-trash"></i> Remove from Cart</button>
+                        </div>
+                    </div>
+                `;
+            });
+            itemsHtml += '</div>';
+            
+            const delivery = subtotal > 500 ? 0 : 40;
+            const total = subtotal + delivery;
+            const savings = cart.reduce((sum, item) => sum + ((item.originalPrice || item.price) - item.price) * (item.quantity || 1), 0);
+            
+            const summaryHtml = `
+                <div class="cart-summary">
+                    <h3>Price Details</h3>
+                    <div class="summary-row"><span>Total MRP</span><span>₹${(subtotal + savings).toLocaleString()}</span></div>
+                    <div class="summary-row" style="color: #4caf50;"><span>Discount</span><span>-₹${savings.toLocaleString()}</span></div>
+                    <div class="summary-row"><span>Delivery Charges</span><span>${delivery === 0 ? 'FREE' : '₹' + delivery}</span></div>
+                    <div class="summary-total"><span>Total Amount</span><span>₹${total.toLocaleString()}</span></div>
+                    <div style="margin-top: 10px; font-size: 12px; color: #4caf50;">✨ You saved ₹${savings.toLocaleString()} on this order</div>
+                    <button class="checkout-btn" onclick="checkout()">Proceed to Checkout →</button>
+                </div>
+            `;
+            
+            container.innerHTML = itemsHtml + summaryHtml;
+        }
+        
+        function updateQuantity(index, change) {
+            const newQty = (cart[index].quantity || 1) + change;
+            if (newQty < 1) {
+                removeItem(index);
+            } else {
+                cart[index].quantity = newQty;
+                localStorage.setItem('cart', JSON.stringify(cart));
+                displayCart();
+                updateCartCount();
+            }
+        }
+        
+        function removeItem(index) {
+            const removedItem = cart[index];
+            cart.splice(index, 1);
+            localStorage.setItem('cart', JSON.stringify(cart));
+            displayCart();
+            updateCartCount();
+            showToast(`${removedItem.name} removed from cart!`);
+        }
+        
+        function updateCartCount() {
+            const total = cart.reduce((sum, item) => sum + (item.quantity || 1), 0);
+            const cartCountElem = document.getElementById('cartCount');
+            if (cartCountElem) cartCountElem.textContent = total;
+        }
+        
+        function checkout() {
+            if (cart.length > 0) {
+                window.location.href = '/checkout.html';
+            }
+        }
+        
+        displayCart();
+    </script>
+</body>
+</html>

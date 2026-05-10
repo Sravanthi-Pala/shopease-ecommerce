@@ -1,0 +1,102 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>Product Details - ShopEase</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Poppins', sans-serif; background: #f0f2f5; }
+        .header { background: linear-gradient(135deg, #2874f0, #1a5be0); padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; }
+        .logo { color: white; font-size: 24px; font-weight: bold; cursor: pointer; }
+        .container { max-width: 1000px; margin: 40px auto; padding: 0 20px; }
+        .product-detail { background: white; border-radius: 16px; display: grid; grid-template-columns: 1fr 1fr; gap: 40px; padding: 30px; }
+        .product-image img { width: 100%; border-radius: 12px; }
+        .price { font-size: 32px; color: #2874f0; font-weight: bold; margin: 20px 0; }
+        .original { text-decoration: line-through; color: #999; font-size: 20px; margin-left: 10px; }
+        .rating { color: #ffc107; font-size: 18px; margin: 15px 0; }
+        button { padding: 12px 30px; margin-right: 15px; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; }
+        .btn-cart { background: #2874f0; color: white; }
+        .btn-buy { background: #ff6b6b; color: white; }
+        .footer { background: #172337; color: white; text-align: center; padding: 20px; margin-top: 40px; }
+        @media (max-width: 768px) { .product-detail { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo" onclick="window.location.href='/'">🛍️ ShopEase</div>
+        <a href="/" style="color: white;">← Back to Shop</a>
+    </div>
+    
+    <div class="container">
+        <div id="productDetail" class="product-detail">Loading...</div>
+    </div>
+    
+    <div class="footer"><p>&copy; 2024 ShopEase. All rights reserved.</p></div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const productId = urlParams.get('id');
+        let cart = JSON.parse(localStorage.getItem('cart') || '[]');
+        
+        async function loadProduct() {
+            if (!productId) { window.location.href = '/'; return; }
+            try {
+                const response = await fetch(`/api/products/${productId}`);
+                const product = await response.json();
+                displayProduct(product);
+            } catch(error) {
+                document.getElementById('productDetail').innerHTML = '<p>Product not found</p>';
+            }
+        }
+        
+        function displayProduct(product) {
+            const discountPercent = product.originalPrice ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100) : 0;
+            const inCart = cart.some(item => item.id === product.id);
+            // Use product.imageUrl from API
+            const productImage = product.imageUrl;
+            
+            document.getElementById('productDetail').innerHTML = `
+                <div class="product-image"><img src="${productImage}" alt="${product.name}"></div>
+                <div>
+                    <h1>${product.name}</h1>
+                    <p>Brand: ${product.brand || 'Various'} | Category: ${product.category}</p>
+                    <div class="rating">${getStarRating(product.rating || 0)} (${product.ratingCount || 0} reviews)</div>
+                    <div class="price">
+                        ₹${product.price.toLocaleString()}
+                        ${product.originalPrice ? `<span class="original">₹${product.originalPrice.toLocaleString()}</span>` : ''}
+                        ${discountPercent > 0 ? `<span style="color:#4caf50;"> (${discountPercent}% off)</span>` : ''}
+                    </div>
+                    <p>${product.description || 'High quality product'}</p>
+                    <div style="margin: 20px 0;"><strong>Delivery:</strong> Free Delivery</div>
+                    <div>
+                        <button class="btn-cart" onclick="addToCart()">${inCart ? 'Go to Cart' : 'Add to Cart'}</button>
+                        <button class="btn-buy" onclick="buyNow()">Buy Now</button>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function getStarRating(rating) {
+            const full = Math.floor(rating);
+            const half = rating % 1 >= 0.5;
+            const empty = 5 - full - (half ? 1 : 0);
+            return '★'.repeat(full) + (half ? '½' : '') + '☆'.repeat(empty);
+        }
+        
+        async function addToCart() {
+            const response = await fetch(`/api/products/${productId}`);
+            const product = await response.json();
+            const existing = cart.find(item => item.id === product.id);
+            if (existing) { existing.quantity = (existing.quantity || 1) + 1; }
+            else { cart.push({...product, quantity: 1}); }
+            localStorage.setItem('cart', JSON.stringify(cart));
+            alert(`${product.name} added to cart!`);
+            window.location.href = '/';
+        }
+        
+        function buyNow() { addToCart(); }
+        
+        loadProduct();
+    </script>
+</body>
+</html>
