@@ -1,4 +1,4 @@
-﻿# Use Eclipse Temurin Java 17 (OpenJDK alternative - working)
+﻿# Use Eclipse Temurin Java 17 (works on Render)
 FROM eclipse-temurin:17-jdk-alpine
 
 # Set working directory
