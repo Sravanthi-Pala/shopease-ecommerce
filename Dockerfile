@@ -1,16 +1,14 @@
-﻿# Use Java 17 base image
-FROM openjdk:17-jdk-slim
+﻿# Use Eclipse Temurin Java 17 (OpenJDK alternative - working)
+FROM eclipse-temurin:17-jdk-alpine
 
 # Set working directory
 WORKDIR /app
 
-# Copy maven wrapper and pom
+# Copy maven wrapper and source code
 COPY mvnw .
 COPY mvnw.cmd .
 COPY .mvn .mvn
 COPY pom.xml .
-
-# Copy source code
 COPY src src
 
 # Make mvnw executable
