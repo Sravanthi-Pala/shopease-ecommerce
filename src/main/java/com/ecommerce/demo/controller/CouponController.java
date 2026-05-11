@@ -38,24 +38,39 @@ public class CouponController {
     public Map<String, Object> validateCoupon(@PathVariable String code, @RequestParam double orderAmount) {
         Map<String, Object> response = new HashMap<>();
         try {
-            // First check if table exists
+            // First ensure table exists
             try {
                 entityManager.createNativeQuery("SELECT 1 FROM discount_coupons LIMIT 1").getSingleResult();
             } catch(Exception e) {
-                // Create table if not exists
-                entityManager.createNativeQuery("CREATE TABLE IF NOT EXISTS discount_coupons (id BIGINT AUTO_INCREMENT PRIMARY KEY, coupon_code VARCHAR(50) UNIQUE NOT NULL, description VARCHAR(255), discount_type VARCHAR(20), discount_value DOUBLE, min_order_amount DOUBLE, is_active INT DEFAULT 1)").executeUpdate();
+                entityManager.createNativeQuery(
+                    "CREATE TABLE IF NOT EXISTS discount_coupons (" +
+                    "id BIGINT AUTO_INCREMENT PRIMARY KEY, " +
+                    "coupon_code VARCHAR(50) UNIQUE NOT NULL, " +
+                    "description VARCHAR(255), " +
+                    "discount_type VARCHAR(20), " +
+                    "discount_value DOUBLE, " +
+                    "min_order_amount DOUBLE, " +
+                    "is_active INT DEFAULT 1" +
+                    ")"
+                ).executeUpdate();
                 
-                // Insert default coupons
-                entityManager.createNativeQuery("INSERT INTO discount_coupons (coupon_code, description, discount_type, discount_value, min_order_amount, is_active) VALUES ('WELCOME10', '10% off', 'PERCENTAGE', 10, 500, 1), ('SAVE20', '20% off', 'PERCENTAGE', 20, 1000, 1), ('FLAT100', '?100 off', 'FIXED', 100, 500, 1)").executeUpdate();
+                entityManager.createNativeQuery(
+                    "INSERT INTO discount_coupons (coupon_code, description, discount_type, discount_value, min_order_amount, is_active) VALUES " +
+                    "('WELCOME10', '10% off', 'PERCENTAGE', 10, 500, 1), " +
+                    "('SAVE20', '20% off', 'PERCENTAGE', 20, 1000, 1), " +
+                    "('FLAT100', '?100 off', 'FIXED', 100, 500, 1)"
+                ).executeUpdate();
             }
             
-            Query query = entityManager.createNativeQuery("SELECT coupon_code, discount_type, discount_value, min_order_amount FROM discount_coupons WHERE UPPER(coupon_code) = UPPER(?)");
+            Query query = entityManager.createNativeQuery(
+                "SELECT coupon_code, discount_type, discount_value, min_order_amount FROM discount_coupons WHERE UPPER(coupon_code) = UPPER(?) AND is_active = 1"
+            );
             query.setParameter(1, code);
             List<Object[]> results = query.getResultList();
             
             if (results.isEmpty()) {
                 response.put("valid", false);
-                response.put("message", "Invalid coupon code: " + code);
+                response.put("message", "Invalid coupon code");
                 return response;
             }
             
@@ -67,7 +82,7 @@ public class CouponController {
             
             if (orderAmount < minOrderAmount) {
                 response.put("valid", false);
-                response.put("message", "Need ?" + String.format("%.0f", minOrderAmount) + " to use this coupon");
+                response.put("message", "Need ?" + String.format("%.0f", minOrderAmount) + " more");
                 return response;
             }
             
@@ -83,12 +98,11 @@ public class CouponController {
             response.put("code", couponCode);
             response.put("discountAmount", Math.round(discount));
             response.put("finalAmount", orderAmount - Math.round(discount));
-            response.put("message", "?? " + couponCode + " applied! Saved ?" + Math.round(discount));
+            response.put("message", "?? Coupon applied! Saved ?" + Math.round(discount));
             
         } catch (Exception e) {
             response.put("valid", false);
-            response.put("message", "Error: " + e.getMessage());
-            e.printStackTrace();
+            response.put("message", "Coupon not available right now");
         }
         return response;
     }
@@ -97,7 +111,7 @@ public class CouponController {
     public Map<String, Object> getBestCoupon(@RequestParam double orderAmount) {
         Map<String, Object> response = new HashMap<>();
         try {
-            Query query = entityManager.createNativeQuery("SELECT coupon_code, discount_type, discount_value, min_order_amount FROM discount_coupons");
+            Query query = entityManager.createNativeQuery("SELECT coupon_code, discount_type, discount_value, min_order_amount FROM discount_coupons WHERE is_active = 1");
             List<Object[]> results = query.getResultList();
             
             double bestDiscount = 0;
