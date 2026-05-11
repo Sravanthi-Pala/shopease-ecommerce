@@ -1,4 +1,5 @@
-﻿<!DOCTYPE html>
+﻿@'
+<!DOCTYPE html>
 <html>
 <head>
     <title>Checkout - ShopEase</title>
@@ -14,17 +15,12 @@
         h2 { margin-bottom: 20px; color: #333; border-bottom: 2px solid #2874f0; padding-bottom: 10px; }
         .form-group { margin-bottom: 15px; }
         label { display: block; margin-bottom: 5px; font-weight: bold; }
-        input, textarea, select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; }
-        .coupon-section { display: flex; gap: 10px; margin: 15px 0; }
-        .apply-btn { padding: 10px 20px; background: #2874f0; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        input, textarea, select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-family: 'Poppins', sans-serif; }
         .cart-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; }
         .summary-row { display: flex; justify-content: space-between; padding: 8px 0; }
         .summary-total { border-top: 2px solid #333; margin-top: 10px; padding-top: 15px; font-weight: bold; font-size: 18px; }
-        .discount-row { color: #4caf50; }
-        .btn-place-order { width: 100%; padding: 15px; background: #ff6b6b; color: white; border: none; border-radius: 5px; font-size: 16px; cursor: pointer; margin-top: 20px; }
-        .coupon-tag { display: inline-block; padding: 5px 10px; margin: 5px; background: #ffe0b3; border-radius: 20px; font-size: 12px; cursor: pointer; }
-        .success { color: #4caf50; }
-        .error { color: #f44336; }
+        .btn-place-order { width: 100%; padding: 15px; background: #ff6b6b; color: white; border: none; border-radius: 5px; font-size: 16px; cursor: pointer; margin-top: 20px; transition: background 0.3s; }
+        .btn-place-order:hover { background: #ff5252; }
         .footer { background: #172337; color: white; text-align: center; padding: 20px; margin-top: 40px; }
         @media (max-width: 768px) { .container { grid-template-columns: 1fr; } }
     </style>
@@ -32,7 +28,7 @@
 <body>
     <div class="header">
         <div class="logo" onclick="window.location.href='/'">🛍️ ShopEase</div>
-        <div><a href="/cart.html" style="color: white;">← Back to Cart</a></div>
+        <div><a href="/cart.html" style="color: white; text-decoration: none;">← Back to Cart</a></div>
     </div>
     
     <div class="container">
@@ -59,23 +55,6 @@
         <div class="order-summary">
             <h2>Order Summary</h2>
             <div id="cartItems"></div>
-            
-            <div class="coupon-section">
-                <input type="text" id="couponCode" placeholder="Enter coupon code (WELCOME10, SAVE20, FLAT100)">
-                <button class="apply-btn" onclick="applyCoupon()">Apply</button>
-                <button class="apply-btn" onclick="applyBestCoupon()" style="background: #4caf50;">⭐ Best</button>
-            </div>
-            <div id="couponMessage" style="font-size: 12px; margin-bottom: 10px;"></div>
-            
-            <div class="available-coupons">
-                <strong>🎫 Available Coupons:</strong>
-                <div>
-                    <span class="coupon-tag" onclick="setCoupon('WELCOME10')">WELCOME10 - 10% off</span>
-                    <span class="coupon-tag" onclick="setCoupon('SAVE20')">SAVE20 - 20% off</span>
-                    <span class="coupon-tag" onclick="setCoupon('FLAT100')">FLAT100 - ₹100 off</span>
-                </div>
-            </div>
-            
             <div id="priceDetails"></div>
             <button class="btn-place-order" onclick="placeOrder()">Place Order</button>
         </div>
@@ -87,109 +66,54 @@
 
     <script>
         let cart = JSON.parse(localStorage.getItem('cart') || '[]');
-        let appliedCoupon = null;
         let currentUserEmail = localStorage.getItem('userEmail') || '';
-        
-        function setCoupon(code) {
-            document.getElementById('couponCode').value = code;
-            applyCoupon();
-        }
         
         function displayCart() {
             if (cart.length === 0) {
-                document.getElementById('cartItems').innerHTML = '<p>Your cart is empty</p>';
+                document.getElementById('cartItems').innerHTML = '<p style="text-align: center; color: #999;">Your cart is empty</p>';
+                document.getElementById('priceDetails').innerHTML = '';
                 return;
             }
             
-            let total = 0;
+            let subtotal = 0;
             document.getElementById('cartItems').innerHTML = cart.map(item => {
                 const itemTotal = item.price * (item.quantity || 1);
-                total += itemTotal;
+                subtotal += itemTotal;
                 return `<div class="cart-item"><span>${item.name} x ${item.quantity || 1}</span><span>₹${itemTotal.toLocaleString()}</span></div>`;
             }).join('');
             
-            updatePriceDetails(total);
+            updatePriceDetails(subtotal);
         }
         
         function updatePriceDetails(subtotal) {
-            let discount = appliedCoupon ? appliedCoupon.discountAmount : 0;
-            let delivery = subtotal > 500 ? 0 : 40;
-            let total = subtotal - discount + delivery;
+            const delivery = subtotal > 500 ? 0 : 40;
+            const total = subtotal + delivery;
             
             document.getElementById('priceDetails').innerHTML = `
                 <div class="summary-row"><span>Subtotal</span><span>₹${subtotal.toLocaleString()}</span></div>
-                ${appliedCoupon ? `<div class="summary-row discount-row"><span>Coupon Discount (${appliedCoupon.code})</span><span>-₹${discount.toLocaleString()}</span></div>` : ''}
-                <div class="summary-row"><span>Delivery Charges</span><span>${delivery === 0 ? 'FREE' : '₹' + delivery}</span></div>
+                <div class="summary-row"><span>Delivery Charges</span><span>${delivery === 0 ? 'FREE' : '₹' + delivery.toLocaleString()}</span></div>
                 <div class="summary-total"><span>Total Amount</span><span>₹${total.toLocaleString()}</span></div>
             `;
         }
         
-        async function applyCoupon() {
-            const code = document.getElementById('couponCode').value.trim().toUpperCase();
-            if (!code) {
-                alert('Enter coupon code');
-                return;
-            }
-            
-            let subtotal = cart.reduce((sum, item) => sum + (item.price * (item.quantity || 1)), 0);
-            
-            try {
-                const response = await fetch(`/api/coupons/validate/${code}?orderAmount=${subtotal}`);
-                const result = await response.json();
-                
-                if (result.valid) {
-                    appliedCoupon = { code: result.code, discountAmount: result.discountAmount };
-                    document.getElementById('couponMessage').innerHTML = `<span class="success">✅ ${result.message}</span>`;
-                    updatePriceDetails(subtotal);
-                } else {
-                    appliedCoupon = null;
-                    document.getElementById('couponMessage').innerHTML = `<span class="error">❌ ${result.message}</span>`;
-                    updatePriceDetails(subtotal);
-                }
-            } catch (error) {
-                document.getElementById('couponMessage').innerHTML = `<span class="error">❌ Error applying coupon</span>`;
-            }
-        }
-        
-        async function applyBestCoupon() {
-            let subtotal = cart.reduce((sum, item) => sum + (item.price * (item.quantity || 1)), 0);
-            
-            try {
-                const response = await fetch(`/api/coupons/best?orderAmount=${subtotal}`);
-                const result = await response.json();
-                
-                if (result.hasBestCoupon) {
-                    document.getElementById('couponCode').value = result.coupon.code;
-                    appliedCoupon = { code: result.coupon.code, discountAmount: result.coupon.discountAmount };
-                    document.getElementById('couponMessage').innerHTML = `<span class="success">⭐ ${result.message}</span>`;
-                    updatePriceDetails(subtotal);
-                } else {
-                    document.getElementById('couponMessage').innerHTML = `<span class="error">⚠️ ${result.message}</span>`;
-                }
-            } catch (error) {
-                document.getElementById('couponMessage').innerHTML = `<span class="error">❌ Error: ${error.message}</span>`;
-            }
-        }
-        
         async function placeOrder() {
-            const name = document.getElementById('fullName').value;
-            const email = document.getElementById('email').value;
-            const phone = document.getElementById('phone').value;
-            const address = document.getElementById('address').value;
+            const name = document.getElementById('fullName').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const phone = document.getElementById('phone').value.trim();
+            const address = document.getElementById('address').value.trim();
             
             if (!name || !email || !phone || !address) {
-                alert('Please fill all shipping details');
+                alert('❌ Please fill all shipping details');
                 return;
             }
             
             if (cart.length === 0) {
-                alert('Your cart is empty');
+                alert('❌ Your cart is empty');
                 return;
             }
             
             let subtotal = cart.reduce((sum, item) => sum + (item.price * (item.quantity || 1)), 0);
-            let discount = appliedCoupon ? appliedCoupon.discountAmount : 0;
-            let total = subtotal - discount + (subtotal > 500 ? 0 : 40);
+            let total = subtotal + (subtotal > 500 ? 0 : 40);
             
             const orderData = {
                 userEmail: email,
@@ -210,7 +134,7 @@
                 const result = await response.json();
                 
                 if (result.success) {
-                    alert(`✅ Order placed successfully!\nOrder ID: ${result.orderId}\nTotal: ₹${total.toLocaleString()}`);
+                    alert(`✅ Order placed successfully!\n\nOrder ID: ${result.orderId}\nTotal Amount: ₹${total.toLocaleString()}\n\nThank you for shopping with ShopEase!`);
                     localStorage.removeItem('cart');
                     window.location.href = `/orders.html?email=${encodeURIComponent(email)}`;
                 } else {
@@ -221,7 +145,6 @@
             }
         }
         
-        // Load email from localStorage
         if (currentUserEmail) {
             document.getElementById('email').value = currentUserEmail;
         }
@@ -230,3 +153,4 @@
     </script>
 </body>
 </html>
+'@ | Out-File -FilePath "checkout.html" -Encoding UTF8 -Force
