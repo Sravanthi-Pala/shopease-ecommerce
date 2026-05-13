@@ -1,4 +1,4 @@
-package com.ecommerce.demo;
+package main.java.com.ecommerce.demo;
 
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
