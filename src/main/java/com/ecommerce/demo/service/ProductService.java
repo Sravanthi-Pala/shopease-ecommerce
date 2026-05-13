@@ -1,4 +1,4 @@
-﻿package com.ecommerce.demo.service;
+package com.ecommerce.demo.service;
 
 import com.ecommerce.demo.model.Product;
 import com.ecommerce.demo.repository.ProductRepository;
@@ -30,5 +30,9 @@ public class ProductService {
     
     public void saveAllProducts(List<Product> products) {
         productRepository.saveAll(products);
+    }
+    
+    public long count() {
+        return productRepository.count();
     }
 }

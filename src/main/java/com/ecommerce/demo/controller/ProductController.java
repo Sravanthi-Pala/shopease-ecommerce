@@ -1,4 +1,4 @@
-﻿package com.ecommerce.demo.controller;
+package com.ecommerce.demo.controller;
 
 import com.ecommerce.demo.model.Product;
 import com.ecommerce.demo.service.ProductService;
